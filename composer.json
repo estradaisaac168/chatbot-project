@@ -1,0 +1,20 @@
+{
+    "name": "user/chatbot-project",
+    "description": "API implementada en PHP para un Chatbot programado",
+    "autoload": {
+        "psr-4": {
+            "App\\" : "./",
+            "Core\\" : "./core",
+            "Controllers\\" : "./controllers",
+            "Model\\" : "./models",
+            "Helpers\\" : "./helpers"
+        }
+    },
+    "authors": [
+        {
+            "name": "estradaisaac168",
+            "email": "estradaisaac168@gmail.com"
+        }
+    ],
+    "require": {}
+}
