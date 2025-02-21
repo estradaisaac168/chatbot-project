@@ -16,5 +16,8 @@
             "email": "estradaisaac168@gmail.com"
         }
     ],
-    "require": {}
+    "require": {
+        "tecnickcom/tcpdf": "^6.8",
+        "phpmailer/phpmailer": "^6.9"
+    }
 }

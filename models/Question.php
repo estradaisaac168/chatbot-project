@@ -28,6 +28,7 @@ class Question extends Model
 
         } catch (\PDOException $e) {
             echo $this->$e;
+            return false;
         }
     }
 }

@@ -3,37 +3,51 @@
 namespace Controllers;
 
 use Model\Question;
+use Model\Response;
 
 class QuestionController
 {
 
-    public static function getquestions()
+    public static function getquestion()
     {
         $id = $_GET['id'] ?? null;
         if ($id === null) {
             echo json_encode([
                 'status' => false,
-                'questions' => "El parametro id no esta definido"
+                'message' => "El parametro id no esta definido"
             ]);
             die;
         }
 
 
         $questionModel = new Question();
-        $questions = $questionModel->getById($id);
+        $question = $questionModel->getById($id);
 
-        if (!$questions) {
+        if (!$question) {
             echo json_encode([
                 'status' => false,
-                'questions' => 'No se pudo realizar la consulta.'
+                'message' => 'No se pudo realizar la consulta para las preguntas.'
             ]);
             die;
-        }else{
-            echo json_encode([
-                'status' => true,
-                'questions' => $questions
-            ]);
-            die;
+        } else {
+
+            $responseModel = new Response();
+            $responses = $responseModel->getAllById($question->id);
+
+            if (!$responses) {
+                echo json_encode([
+                    'status' => false,
+                    'message' => 'No se pudo realizar la consulta para las respuestas.'
+                ]);
+                die;
+            } else {
+                echo json_encode([
+                    'status' => true,
+                    'question' => $question,
+                    'responses' => $responses
+                ]);
+                die;
+            }
         }
     }
 }

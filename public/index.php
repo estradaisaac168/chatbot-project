@@ -3,6 +3,9 @@ require_once __DIR__ . '/../core/app.php';
 
 use App\Router;
 use Controllers\QuestionController;
+use Controllers\ResponseController;
+use Controllers\DocumentController;
+;
 
 
 header("Access-Control-Allow-Origin: https://5502-idx-chatbot-1739282265787.cluster-joak5ukfbnbyqspg4tewa33d24.cloudworkstations.dev/");
@@ -17,7 +20,19 @@ header('Content-Type: application/json');
 $router = new Router();
 
 
-$router->get('/api/questions', [QuestionController::class, 'getquestions']);
+// Questions routes
+$router->get('/api/question', [QuestionController::class, 'getquestion']);
+
+
+//Responses routes
+$router->get('/api/responses', [ResponseController::class, 'getresponses']);
+
+
+//Documents routes
+$router->get('/api/document/download', [DocumentController::class, 'download']);
+$router->get('/api/document/send', [DocumentController::class, 'send']);
+$router->post('/api/document/create', [DocumentController::class, 'create']);
+
 
 
 $router->checkRoutes();

@@ -70,7 +70,8 @@ class Model
     //Get's the row count
     public function lastId()
     {
-        return $this->statement->getLastId();
+        return $this->dbHandler->lastInsertId();
     }
+    
 
 }
