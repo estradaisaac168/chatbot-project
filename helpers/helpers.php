@@ -21,3 +21,10 @@ function validatePost($key)
 
     return $valor;
 }
+
+
+function isAuth() : void {
+    if (!isset($_SESSION['login'])) {
+        header('Location: /');
+    }
+}
