@@ -5,7 +5,8 @@ use App\Router;
 use Controllers\QuestionController;
 use Controllers\ResponseController;
 use Controllers\DocumentController;
-;
+use Controllers\UserController;
+
 
 
 header("Access-Control-Allow-Origin: https://5502-idx-chatbot-1739282265787.cluster-joak5ukfbnbyqspg4tewa33d24.cloudworkstations.dev/");
@@ -34,5 +35,7 @@ $router->get('/api/document/send', [DocumentController::class, 'send']);
 $router->post('/api/document/create', [DocumentController::class, 'create']);
 
 
+// users
+$router->get('/api/user/create', [UserController::class, 'create']);
 
 $router->checkRoutes();
