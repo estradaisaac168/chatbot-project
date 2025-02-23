@@ -4,6 +4,7 @@ namespace Controllers;
 
 
 use Model\Document;
+use Model\Response;
 use Helpers\GeneradorPDF;
 use Helpers\EmailSender;
 
@@ -12,6 +13,9 @@ class DocumentController
 
     public static function getresponses()
     {
+        session_start();
+        isAuth();
+
         $id = $_GET['id'] ?? null;
         if ($id === null) {
             echo json_encode([
@@ -43,45 +47,49 @@ class DocumentController
 
     public static function create()
     {
+        session_start();
+        isAuth();
+        
         $type = validatePost('type');
         $responseId = validatePost('responseId');
-        
-        if(!$type && !$responseId){
+
+        if (!$type && !$responseId) {
 
             echo json_encode([
-                "status" => false, 
+                "status" => false,
                 "message" => "Las variables no estan especificadas"
             ]);
 
             die;
-
         }
-        
+
 
         $filePath = '';
         $nameFile = '';
         $document = [];
 
-        $generador = new GeneradorPDF(UPLOAD_DIR); 
+        $directoryPath = '../public/uploads/documents';  // Apunta a la carpeta 'public/uploads/documents'
 
-        if (!is_dir('uploads/documents')) {  //Revisa si existe el directorio sino lo crea.
-            mkdir('uploads/documents', 0777, true);
+        if (!is_dir($directoryPath)) {
+            mkdir($directoryPath, 0777, true);  // Si no existe, lo crea
         }
+
+        $generador = new GeneradorPDF(UPLOAD_DIR);
 
         switch (intval($_POST['type'])) {
             case 1:
                 $nameFile = 'constancia_laboral_' . rand(10000, 99999);
-                $filePath = $generador->generarConstanciaSalarial($nameFile, 'Isaac Estrada', 'Call Center - RRHH', 1500.00, 200.00, 100.00);
+                $filePath = $generador->generarConstanciaSalarial($nameFile, $_SESSION['fullname'], 'Call Center - RRHH', 1500.00, 200.00, 100.00);
                 break;
 
             case 2:
                 $nameFile = 'boleta_pago_' . rand(10000, 99999);
-                $filePath = $generador->generarBoletaPago($nameFile, 'Isaac Estrada', 'Call Center - RRHH', 1500.00, 200.00, 100.00);
+                $filePath = $generador->generarBoletaPago($nameFile, $_SESSION['carnet'], $_SESSION['fullname'], 'Call Center - RRHH', 1500.00, 200.00, 100.00);
                 break;
 
             default:
                 // $nameFile = 'constancia_laboral_' . rand(10000, 99999);
-                // $filePath = $generador->generarConstanciaLaboral($nameFile, 'Isaac Estrada', 'Call Center - RRHH', 'Analista', '01/01/2020');
+                // $filePath = $generador->generarConstanciaLaboral($nameFile, $_SESSION['fullname'], 'Call Center - RRHH', 'Analista', '01/01/2020');
 
                 break;
         }
@@ -98,13 +106,15 @@ class DocumentController
 
         if (!$document) {
             echo json_encode([
-                "status" => false, "message" => "Algo salio mal no se pudo crear el pdf"
+                "status" => false,
+                "message" => "Algo salio mal no se pudo crear el pdf"
             ]);
             die;
         } else {
             echo json_encode([
-                "status" => true, 
-                "message" => "Documento creado con éxito", "id" => $document
+                "status" => true,
+                "message" => "Documento creado con éxito",
+                "id" => $document
             ]);
         }
     }
@@ -112,7 +122,10 @@ class DocumentController
 
     public static function download()
     {
-        $id = $_GET['documentId'] ?? null;
+        session_start();
+        isAuth();
+
+        $id = $_GET['id'] ?? null;
         if ($id === null) {
             echo json_encode([
                 'status' => false,
@@ -126,20 +139,20 @@ class DocumentController
 
         if ($document) {
 
-            // $url = SITE_URL . 'uploads/documents/' . $document->document_name;
+            $url = SITE_URL . 'uploads/documents/' . $document->document_name;
             // $url = stripslashes($document->file_path);
 
-            // echo json_encode([
-            //     'status' => true,
-            //     'message' => 'Documento encontrado',
-            //     "filename" => $document->document_name,
-            //     "url" => $url
-            // ], JSON_UNESCAPED_SLASHES);
+            echo json_encode([
+                'status' => true,
+                'message' => 'Documento encontrado',
+                "filename" => $document->document_name,
+                "url" => $url
+            ], JSON_UNESCAPED_SLASHES);
 
-            $filePath = $document->file_path;
-            header('Content-Type: application/pdf');
-            header('Content-Disposition: attachment; filename="mi_archivo_real.pdf"');
-            readfile($filePath);
+            // $filePath = $document->file_path;
+            // header('Content-Type: application/pdf');
+            // header('Content-Disposition: attachment; filename="mi_archivo_real.pdf"');
+            // readfile($filePath);
         } else {
 
             die(json_encode([
@@ -149,9 +162,12 @@ class DocumentController
         }
     }
 
-    public static function send($id){
+    public static function send($id)
+    {
+        session_start();
+        isAuth();
 
-        $id = $_GET['documentId'] ?? null;
+        $id = $_GET['id'] ?? null;
         if ($id === null) {
             echo json_encode([
                 'status' => false,
@@ -165,9 +181,9 @@ class DocumentController
 
         if ($document) {
 
-            $recipient = 'odiliorosales00@gmail.com';
+            $recipient = $_SESSION['email'];
             $subject = $document->document_name;
-            $message = '<h1>Hola</h1><p>Se ha adjuntado tu documento.</p>';
+            $message = "<h1>Hola " . $_SESSION['fullname'] . "</h1><p>Se ha adjuntado tu documento.</p>";
 
             $result = EmailSender::sendEmail($recipient, $subject, $message, $document->file_path, $document->document_name);
 

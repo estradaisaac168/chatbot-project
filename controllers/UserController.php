@@ -14,7 +14,9 @@ class UserController
 
         $user = [];
 
-        $user['carnet'] = '123456';
+        $user['carnet'] = '102592';
+        $user['fullname'] = 'Odilio Rosales';
+        $user['email'] = 'odiliorosales00@gmail.com';
         $user['password'] = password_hash('123', PASSWORD_DEFAULT);
 
         $userModel = new User();

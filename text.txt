@@ -1,0 +1,37 @@
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^(.*)$ index.php/$1 [QSA,PT,L]
+</IfModule>
+
+
+
+DirectoryIndex index.php
+
+RewriteEngine On
+
+# Permitir el acceso a archivos estáticos como CSS, JS, imágenes, etc.
+RewriteCond %{REQUEST_URI} !^/public/(css|js|images|fonts|uploads)/ [NC]
+RewriteCond %{REQUEST_URI} !\.(css|js|jpg|jpeg|png|gif|svg|woff|woff2|ttf|eot|otf|ico)$ [NC]
+
+# Redirigir todas las demás solicitudes a public/index.php
+RewriteRule ^$ public/index.php [L]
+RewriteRule ^((?!public/).*)$ public/$1 [L,NC]
+
+
+
+
+
+
+
+
+
+
+

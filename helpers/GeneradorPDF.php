@@ -38,7 +38,7 @@ class GeneradorPDF {
 
 
 
-    public function generarBoletaPago($nombreArchivo, $empleado, $empresa, $salario_base, $bonos, $descuentos, $clave = "ABC123") {
+    public function generarBoletaPago($nombreArchivo, $clave, $empleado, $empresa, $salario_base, $bonos, $descuentos) {
         $total_pago = $salario_base + $bonos - $descuentos;
         $fecha_emision = date("d/m/Y");
 

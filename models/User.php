@@ -19,11 +19,13 @@ class User extends Model
     public function save($user)
     {
         try {
-            $query = "INSERT INTO users (carnet, password) 
-                        VALUES (:carnet, :password)";
+            $query = "INSERT INTO users (carnet, password, fullname, email) 
+                        VALUES (:carnet, :password, :fullname, :email)";
             $this->db->query($query);
             $this->db->bind(':carnet', $user['carnet']);
             $this->db->bind(':password', $user['password']);
+            $this->db->bind(':fullname', $user['fullname']);
+            $this->db->bind(':email', $user['email']);
             return $this->db->execute() ? true : false;
         } catch (\PDOException $e) {
             echo $this->$e;

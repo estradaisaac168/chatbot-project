@@ -20,6 +20,7 @@ class Router
     public function checkRoutes()
     {
 
+
         // Proteger Rutas...
         // session_set_cookie_params([
         //     'lifetime' => 0,
@@ -36,20 +37,29 @@ class Router
 
         // $currentUrl = $_SERVER['PATH_INFO'] ?? '/';
 
-        $currentUrl = parse_url($_SERVER['REQUEST_URI']) ?? '/';
+        // $currentUrl = parse_url($_SERVER['REQUEST_URI']) ?? '/';
+        // $currentUrl = $_SERVER['REQUEST_URI'] ?? '/';
+
+        $currentUrl = strtok($_SERVER["REQUEST_URI"], "?") ?? '/';
 
         $method = $_SERVER['REQUEST_METHOD'];
 
         // Manejar solicitudes OPTIONS (Preflight)
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            http_response_code(200);
-            exit();
-        }
+        // if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        //     http_response_code(200);
+        //     exit();
+        // }
+
+        // if ($method === 'GET') {
+        //     $fn = $this->getRoutes[$currentUrl['path']] ?? null;
+        // } else {
+        //     $fn = $this->postRoutes[$currentUrl['path']] ?? null;
+        // }
 
         if ($method === 'GET') {
-            $fn = $this->getRoutes[$currentUrl['path']] ?? null;
+            $fn = $this->getRoutes[$currentUrl] ?? null;
         } else {
-            $fn = $this->postRoutes[$currentUrl['path']] ?? null;
+            $fn = $this->postRoutes[$currentUrl] ?? null;
         }
 
 
@@ -63,22 +73,16 @@ class Router
 
     public function render($view, $datos = [])
     {
-
         // Leer lo que le pasamos  a la vista
         foreach ($datos as $key => $value) {
             $$key = $value;  // Doble signo de dolar significa: variable variable, básicamente nuestra variable sigue siendo la original, pero al asignarla a otra no la reescribe, mantiene su valor, de esta forma el nombre de la variable se asigna dinamicamente
         }
-
+        $script = $script ?? '';
         ob_start(); // Almacenamiento en memoria durante un momento...
-
-        // entonces incluimos la vista en el layout
-        include_once __DIR__ . "/views/$view.php";
-        
+        include_once __DIR__ . "/views/$view.php"; // entonces incluimos la vista en el layout
         $content = ob_get_clean(); // Limpia el Buffer
-
         $currentUrl = parse_url($_SERVER['REQUEST_URI']) ?? '/';
-
-        if (str_contains($currentUrl['path'], '/admin')) {
+        if (str_contains($currentUrl["path"] , '/admin')) {
             include_once __DIR__ . '/views/layout-admin.php';
         } else {
             include_once __DIR__ . '/views/layout.php';

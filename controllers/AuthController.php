@@ -55,6 +55,8 @@ class AuthController
         session_start();
         $_SESSION['id'] = $user->id;
         $_SESSION['carnet'] = $user->carnet;
+        $_SESSION['fullname'] = $user->fullname;
+        $_SESSION['email'] = $user->email;
         $_SESSION['login'] = true;
         header('location: /chatbot');
     }

@@ -14,6 +14,7 @@
 
 <a href="/logout">Cerrar Sesion</a>
 
-
-<!-- <script src="./js/main.js"></script>
-    <script src="./js/chatboot.js"></script> -->
+<?php
+$script .= '<script src="/build/js/chatbot.js"></script>
+            <script src="/build/js/main.js"></script>';
+?>
