@@ -1,7 +1,5 @@
-ALTER TABLE users
-ADD COLUMN nombre VARCHAR(100) NOT NULL,
-ADD COLUMN email VARCHAR(100) UNIQUE NOT NULL,
-ADD COLUMN fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+ALTER TABLE responses CHANGE COLUMN next_response_id parent_response_id INT;
 
-ALTER TABLE users 
-CHANGE COLUMN nombre fullname VARCHAR(100) NOT NULL;
+UPDATE responses SET parent_response_id = NULL;
+
+ALTER TABLE responses ADD COLUMN get_document INT NOT NULL DEFAULT 0;

@@ -21,7 +21,8 @@ class QuestionController
 
 
         $questionModel = new Question();
-        $question = $questionModel->getById($id);
+        $questionModel->setId($id);
+        $question = $questionModel->getOne();
 
         if (!$question) {
             echo json_encode([
@@ -32,7 +33,8 @@ class QuestionController
         } else {
 
             $responseModel = new Response();
-            $responses = $responseModel->getAllById($question->id);
+            $responseModel->setQuestionId($question->id);
+            $responses = $responseModel->getAllById();
 
             if (!$responses) {
                 echo json_encode([

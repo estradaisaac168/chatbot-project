@@ -3,8 +3,8 @@
         <h3 class="text-center">Chatbot RRHH</h3>
         <form method="POST" action="/">
             <div class="mb-3">
-                <label for="carnet" class="form-label">Carnet:</label>
-                <input type="text" class="form-control" id="carnet" name="carnet">
+                <label for="carne" class="form-label">Carnet:</label>
+                <input type="text" class="form-control" id="carne" name="carne">
                 <div class="valid-feedback">
                     <?php echo $data['carnetError'];  ?>
                 </div>

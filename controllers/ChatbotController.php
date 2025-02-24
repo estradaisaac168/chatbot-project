@@ -11,6 +11,8 @@ class ChatbotController
 
     public static function chatbot(Router $router)
     {
+        error_log("ChatbotController::chatbot() ");
+
         session_start();
         isAuth();
 

@@ -22,7 +22,7 @@
       };
       # Runs when a workspace is (re)started
       onStart= {
-        run-server = "php -S localhost:3000 public/index.php";
+        run-server = "php -S localhost:3000 -t public";
       };
     };
   };

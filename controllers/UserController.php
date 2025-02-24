@@ -15,11 +15,21 @@ class UserController
         $user = [];
 
         $user['carnet'] = '102592';
-        $user['fullname'] = 'Odilio Rosales';
+        $user['name'] = 'Odilio';
+        $user['lastname'] = 'Rosales';
         $user['email'] = 'odiliorosales00@gmail.com';
         $user['password'] = password_hash('123', PASSWORD_DEFAULT);
+        $user['carnet'] = '102592';
+        $user['login'] = 'login';
+
 
         $userModel = new User();
+        $userModel->setName('Odilio');
+        $userModel->setLastname('Rosales');
+        $userModel->setEmail('odiliorosales00@gmail.com');
+        $userModel->setPassword(password_hash('123', PASSWORD_DEFAULT));
+        $userModel->setCarne('102592');
+        $userModel->setLogin(1);
         $user = $userModel->save($user);
 
         if($user){

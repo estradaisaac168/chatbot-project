@@ -9,7 +9,7 @@
     const userInput = document.getElementById("userInput");
     const sendButton = document.getElementById("sendButton");
 
-    let initialQuestion = 2;
+    let initialQuestion = 1;
     let endQuestion = 4;
     let arrayResponse = [];
     let arrayResponses = [];
@@ -23,6 +23,10 @@
 
     const type_document = {
         currentValue: 0
+    }
+
+    const isMessageResponse = {
+        flag: false
     }
 
     /******************************************************  Fetch API *********************************** */
@@ -47,6 +51,7 @@
                 console.log(data);
                 fillQuestion(data);
                 fillResponses(data);
+                updateFlagShowMessage(false);
                 displayBotMessage(data.question.question_text);
                 displayResponses(data.responses);
             } else {
@@ -82,7 +87,9 @@
             if (data.status) {
                 console.log(data);
                 fillResponse(data);
-                displayBotMessage(data.response.response_text);
+                updateFlagShowMessage(true);
+                // displayBotMessage(data.response.response_text);
+                displayResponses([data.response]);
             } else {
                 console.log(data.message);
             }
@@ -198,6 +205,11 @@
     }
 
 
+    function updateFlagShowMessage(flag) {
+        isMessageResponse.flag = flag;
+    }
+
+
     function updateTypeDoc(newValue) {
         if (newValue !== null) {
             type_document.currentValue = newValue;
@@ -220,187 +232,291 @@
 
     async function handleUserSelection(opcion) { // Manejador seleccion del usuario
 
-        let next_question = getIndex(opcion, arrayResponses)?.next_question; //Obtener la next_question.
-        let parent_response = getIndex(opcion, arrayResponses)?.parent_response; //Obtiene de la opcion la proxima pregunta 0 || 1.
-        let next_response = getIndex(opcion, arrayResponses)?.next_response; //Obtiene el id la proxima pregunta.
+        let has_next_question = getIndex(opcion, arrayResponses)?.has_next_question;
+        let has_next_response = getIndex(opcion, arrayResponses)?.has_next_response;
+        let has_document = getIndex(opcion, arrayResponses)?.has_document;
+        let response_types_id = getIndex(opcion, arrayResponses)?.response_types_id;
+
+        let next_question_id = getIndex(opcion, arrayResponses)?.next_question_id; //
+        let parent_response_id = getIndex(opcion, arrayResponses)?.parent_response_id; //
+        let document_types_id = getIndex(opcion, arrayResponses)?.document_types_id; //
+        let status = getIndex(opcion, arrayResponses)?.status; //
+        let get_document = getIndex(opcion, arrayResponses)?.get_document; //
         let type_doc = getIndex(opcion, arrayResponses)?.type_document;
-        let type_response = getIndex(opcion, arrayResponses)?.type_response;
 
         let response_text = getIndex(opcion, arrayResponses)?.response_text; //Obtener la opcion actual.
-        let response_id = getIndex(opcion, arrayResponses)?.id; //Me devuelve el id de la opcion seleccionada
+        let selected_response_id = getIndex(opcion, arrayResponses)?.id; //Me devuelve el id de la opcion seleccionada
         let question_id = getIndex(opcion, arrayResponses)?.question_id; //Me devuelve el question_id de la opcion seleccionada
 
-        if (type_doc !== null) { // Si type_doc es numero dejar pasar.
-            updateTypeDoc(type_doc);
+        if (document_types_id !== null) { // Si type_doc es numero dejar pasar.
+            updateTypeDoc(document_types_id);
         }
 
+        switch (response_types_id) {
+            case 1:
 
+                if (has_next_question === 1) {
+                    console.log('has_next_question', has_next_question);
 
-        if (getIndex(opcion, arrayResponses)?.type_response === 1) {
-            if (next_question && next_question !== null) { // Si hay siguiente respuesta
-                console.log('Si hay una siguiente pregunta');
+                    displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
+                    clearInput(); // Limpia el input.
+                    await getQuestion(next_question_id);
+                }
 
-                displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
-                clearInput(); // Limpia el input.
+                if (has_next_response === 1) {
+                    console.log('has_next_response', has_next_response);
 
-                await getQuestion(next_question); // Obtener el nuevo bloque de pregunta y respuestas.
+                    displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
+                    clearInput(); // Limpia el input.
+                    await getResponse(selected_response_id);
 
+                    if (arrayResponse.status === 0) { //Se ejecuta si la respuesta esta completa con 0 sino muestra ultima pregunta para finalizar el chat
 
-            } else { // No hay siguiente respuesta entonces verificar las respuestas.
-                console.log('No hay una siguiente pregunta pero si una respuesta');
-
-                if (next_response && next_response === 1) { //Evalua que exista y que tenga una secuencia respuesta.
-                    console.log('Si hay una respuesta y una secuencia');
-
-                    displayUserMessage(response_text);
-                    clearInput();
-
-                    await getResponse(response_id);
-
-                    if (arrayResponse.next_response !== null) {
-
-                        do {  //Hacer mientras (Llama las respuestas mientras exista una proxima pregunta).
+                        do {  //Hacer mientras (Llama las respuestas mientras exista una proxima respuesta).
                             await getResponse(arrayResponse.id);
-                            next_response = arrayResponse.next_response;
-                            console.log(" next_response ", next_response);
-                        } while (next_response === 1);
+                            has_next_response = arrayResponse.has_next_response;
+                            console.log(" has_next_response inner loop", has_next_response);
+                        } while (has_next_response === 1 && arrayResponse.status === 0);
                     } else {
-                        console.log("Ha habido un error aca: Si hay una respuesta y una secuencia");
+                        await getQuestion(endQuestion);
                     }
 
-                    if (arrayResponse.next_question && arrayResponse.next_question !== null) {
-                        await getQuestion(arrayResponse.next_question);
+                    if (arrayResponse.has_next_question === 1) {
+                        console.log('arrayResponse.has_next_question', arrayResponse.has_next_question);
+                        await getQuestion(arrayResponse.next_question_id);
                     }
+                }
+                break;
 
-                } else {
-                    console.log('No hay proxima pregunta pero Si hay una respuesta y no secuencia');
+            case 2:
 
+                if (has_next_question === 1) {
+                    displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
+                    clearInput(); // Limpia el input.
+                    await getQuestion(next_question_id);
                 }
 
-            }
-        }
-
-
-        if (getIndex(opcion, arrayResponses)?.type_response === 2) {
-            if (next_question && next_question !== null) {  //Si no es null llamar a la siguiente pregunta.
-                console.log('Hay next question');
-                displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
-                clearInput();
-                await getQuestion(next_question); // Obtener el nuevo bloque de pregunta y respuestas.
-
-            } else { //Si es null llamar a la respuesta. //Imprimir documento
-
-                if (next_response && next_response === 1) {  //Si hay siguiente respuesta
-                    console.log('No hay next question pero Hay proxima respuesta');
-
+                if (has_next_response === 1) {
                     displayUserMessage(response_text);
                     clearInput();
+                }
 
-                    // Mostrar Secuencia de la respuesta
-                    do {  //Hacer mientras (Llama las respuestas mientras exista una proxima pregunta).
-                        await getResponse(response_id);
-                        next_response = arrayResponse.next_response;
-                    } while (next_response === 1);
-
-                    console.log('type_document.currentValue: ', type_document.currentValue, "type_doc: ", type_doc);
+                if (isNumber(document_types_id)) {
                     if (type_document.currentValue > 0) {
-                        const response = await createPDF(type_document.currentValue, response_id);
+                        const response = await createPDF(type_document.currentValue, selected_response_id);
                         fillDocument(response);
+                        console.log(arrayDocument);
                     }
+                }
 
-                    // const response = await createPDF(type_doc, response_id);
-
-                    // fillDocument(response);
-
-
-
-                    if (arrayDocument.status) {
-                        console.log("Proxima pregunta");
-                        await getQuestion(arrayResponse.next_question);
-                    } else {
-                        displayBotMessage("No se pudo generar tu documento");
-
-                        await getQuestion(endQuestion); //Quitar............................ para mientras
-                    }
-
-                } else { // Si no hay respuesta siguiente
-                    console.log('No hay next question  y No hay proxima respuesta');
-                    // displayUserMessage(response_text);
-                    console.log('arrayDocument', arrayDocument);
-                    if (response_text === 'Descargar') {
-                        // await getResponse(null);
+                if (type_document.currentValue === 1) {
+                    if (has_next_question === 0 && has_next_response === 0) {
                         displayUserMessage(response_text);
                         clearInput();
-                        // await downloadPDF(arrayDocument.id);
-                        const response = await downloadPDF(arrayDocument.id); // Imprime el nombre del documento?
 
-                        // console.log('type_document.currentValue: ', type_document.currentValue, "type_doc: ", type_doc);
-                        // if (dictionaryTypesDocuments.has(type_document.currentValue)) {
-                        //     displayBotDownloadLink(url, dictionaryTypesDocuments.get(type_document.currentValue));
-                        // }
-                        displayBotDownloadLink(response.url, response.filename)
+                        switch (type_document.currentValue) {
+                            case 1:
+                                const response = await downloadPDF(arrayDocument.id); // Imprime el nombre del documento?
+                                if (get_document === 0) {
+                                    displayBotDownloadLink(response.url, response.filename)
+                                    await getQuestion(endQuestion);
+                                } else {
+                                    const response = await sendEmail(arrayDocument.id); //Este es el id de la respuesta como tal..
+                                    displayBotMessage(response.message);
+                                    await getQuestion(endQuestion);
+                                }
 
-                        await getQuestion(endQuestion);
-                    } else {
-                        displayUserMessage(response_text);
-                        clearInput();
-                        console.log('Mandar por correo');
-                        if (type_document.currentValue > 0) {
-                            const response = await sendEmail(arrayDocument.id); //Este es el id de la respuesta como tal..
-                            displayBotMessage(response.message);
-                            await getQuestion(endQuestion);
+                                break;
+
+                            default:
+                                break;
                         }
-                        return;
+
+
                     }
                 }
-            }
+
+
+                break;
+
+            default:
+                break;
         }
 
-        if (getIndex(opcion, arrayResponses)?.type_response === 3) {
-            if (next_question && next_question !== null) { // Si hay siguiente respuesta
-                console.log('Si hay una siguiente pregunta');
 
-                displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
-                clearInput(); // Limpia el input.
+        // if (getIndex(opcion, arrayResponses)?.type_response === 1) {
+        //     if (next_question && next_question !== null) { // Si hay siguiente respuesta
+        //         console.log('Si hay una siguiente pregunta');
 
-                await getQuestion(next_question); // Obtener el nuevo bloque de pregunta y respuestas.
+        //         displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
+        //         clearInput(); // Limpia el input.
+
+        //         await getQuestion(next_question); // Obtener el nuevo bloque de pregunta y respuestas.
 
 
-            } else { // No hay siguiente respuesta entonces verificar las respuestas.
-                console.log('No hay una siguiente pregunta pero si una respuesta');
+        //     } else { // No hay siguiente respuesta entonces verificar las respuestas.
+        //         console.log('No hay una siguiente pregunta pero si una respuesta');
 
-                if (next_response && next_response === 1) { //Evalua que exista y que tenga una secuencia respuesta.
-                    console.log('Si hay una respuesta y una secuencia');
+        //         if (next_response && next_response === 1) { //Evalua que exista y que tenga una secuencia respuesta.
+        //             console.log('Si hay una respuesta y una secuencia');
 
-                    // displayUserMessage(response_text);
-                    // clearInput();
+        //             displayUserMessage(response_text);
+        //             clearInput();
 
-                    // await getResponse(response_id);
+        //             await getResponse(response_id);
 
-                    // if (arrayResponse.next_response !== null) {
+        //             if (arrayResponse.next_response !== null) {
 
-                    //     do {  //Hacer mientras (Llama las respuestas mientras exista una proxima pregunta).
-                    //         await getResponse(arrayResponse.id);
-                    //         next_response = arrayResponse.next_response;
-                    //         console.log(" next_response ", next_response);
-                    //     } while (next_response === 1);
-                    // } else {
-                    //     console.log("Ha habido un error aca: Si hay una respuesta y una secuencia");
-                    // }
+        //                 do {  //Hacer mientras (Llama las respuestas mientras exista una proxima pregunta).
+        //                     await getResponse(arrayResponse.id);
+        //                     next_response = arrayResponse.next_response;
+        //                     console.log(" next_response ", next_response);
+        //                 } while (next_response === 1);
+        //             } else {
+        //                 console.log("Ha habido un error aca: Si hay una respuesta y una secuencia");
+        //             }
 
-                    // if (arrayResponse.next_question && arrayResponse.next_question !== null) {
-                    //     await getQuestion(arrayResponse.next_question);
-                    // }
+        //             if (arrayResponse.next_question && arrayResponse.next_question !== null) {
+        //                 await getQuestion(arrayResponse.next_question);
+        //             }
 
-                } else {
-                    console.log('No hay proxima pregunta pero Si hay una respuesta y no secuencia');
+        //         } else {
+        //             console.log('No hay proxima pregunta pero Si hay una respuesta y no secuencia');
 
-                }
+        //         }
 
-            }
-        }
+        //     }
+        // }
+
+
+        // if (getIndex(opcion, arrayResponses)?.type_response === 2) {
+
+
+
+        // }
+
+
+        // if (getIndex(opcion, arrayResponses)?.type_response === 3) {
+        //     if (next_question && next_question !== null) { // Si hay siguiente respuesta
+        //         console.log('Si hay una siguiente pregunta');
+
+        //         displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
+        //         clearInput(); // Limpia el input.
+
+        //         await getQuestion(next_question); // Obtener el nuevo bloque de pregunta y respuestas.
+
+
+        //     } else { // No hay siguiente respuesta entonces verificar las respuestas.
+        //         console.log('No hay una siguiente pregunta pero si una respuesta');
+
+        //         if (next_response && next_response === 1) { //Evalua que exista y que tenga una secuencia respuesta.
+        //             console.log('Si hay una respuesta y una secuencia');
+
+        //             // displayUserMessage(response_text);
+        //             // clearInput();
+
+        //             // await getResponse(response_id);
+
+        //             // if (arrayResponse.next_response !== null) {
+
+        //             //     do {  //Hacer mientras (Llama las respuestas mientras exista una proxima pregunta).
+        //             //         await getResponse(arrayResponse.id);
+        //             //         next_response = arrayResponse.next_response;
+        //             //         console.log(" next_response ", next_response);
+        //             //     } while (next_response === 1);
+        //             // } else {
+        //             //     console.log("Ha habido un error aca: Si hay una respuesta y una secuencia");
+        //             // }
+
+        //             // if (arrayResponse.next_question && arrayResponse.next_question !== null) {
+        //             //     await getQuestion(arrayResponse.next_question);
+        //             // }
+
+        //         } else {
+        //             console.log('No hay proxima pregunta pero Si hay una respuesta y no secuencia');
+
+        //         }
+
+        //     }
+        // }
+
+
+        // if (getIndex(opcion, arrayResponses)?.type_response === 2) {
+        //     if (next_question && next_question !== null) {  //Si no es null llamar a la siguiente pregunta.
+        //         console.log('Hay next question');
+        //         displayUserMessage(response_text); //Muestra la opcion selecciona del usuario.
+        //         clearInput();
+        //         await getQuestion(next_question); // Obtener el nuevo bloque de pregunta y respuestas.
+
+        //     } else if (next_question === null) { //Si es null llamar a la respuesta. //Imprimir documento
+
+        //         if (next_response === 1) {  //Si hay siguiente respuesta
+        //             console.log('No hay next question pero Hay proxima respuesta');
+
+        //             displayUserMessage(response_text);
+        //             clearInput();
+
+        //             // Mostrar Secuencia de la respuesta
+        //             do {  //Hacer mientras (Llama las respuestas mientras exista una proxima pregunta).
+        //                 await getResponse(response_id);
+        //                 next_response = arrayResponse.next_response;
+        //             } while (next_response === 1);
+
+        //             console.log('type_document.currentValue: ', type_document.currentValue, "type_doc: ", type_doc);
+        //             if (type_document.currentValue > 0) {
+        //                 const response = await createPDF(type_document.currentValue, response_id);
+        //                 fillDocument(response);
+        //             }
+
+        //             // const response = await createPDF(type_doc, response_id);
+
+        //             // fillDocument(response);
+
+
+
+        //             if (arrayDocument.status && arrayResponse.next_question !== null) {
+        //                 console.log("Proxima pregunta: ", arrayResponse.next_question);
+        //                 await getQuestion(arrayResponse.next_question);
+        //             } else {
+        //                 displayBotMessage("No se pudo generar tu documento");
+        //                 await getQuestion(endQuestion); //Quitar............................ para mientras
+        //             }
+
+        //         } else if (next_response === 0) { // Si no hay respuesta siguiente
+        //             console.log('No hay next question  y No hay proxima respuesta');
+        //             // displayUserMessage(response_text);
+        //             console.log('arrayDocument', arrayDocument);
+        //             if (response_text === 'Descargar') {
+        //                 // await getResponse(null);
+        //                 displayUserMessage(response_text);
+        //                 clearInput();
+        //                 // await downloadPDF(arrayDocument.id);
+        //                 const response = await downloadPDF(arrayDocument.id); // Imprime el nombre del documento?
+
+        //                 // console.log('type_document.currentValue: ', type_document.currentValue, "type_doc: ", type_doc);
+        //                 // if (dictionaryTypesDocuments.has(type_document.currentValue)) {
+        //                 //     displayBotDownloadLink(url, dictionaryTypesDocuments.get(type_document.currentValue));
+        //                 // }
+        //                 displayBotDownloadLink(response.url, response.filename)
+
+        //                 await getQuestion(endQuestion);
+        //             } else {
+        //                 displayUserMessage(response_text);
+        //                 clearInput();
+        //                 console.log('Mandar por correo');
+        //                 if (type_document.currentValue > 0) {
+        //                     const response = await sendEmail(arrayDocument.id); //Este es el id de la respuesta como tal..
+        //                     displayBotMessage(response.message);
+        //                     await getQuestion(endQuestion);
+        //                 }
+        //                 return;
+        //             }
+        //         }
+        //     }
+        // }
 
     }
+
 
 
 
@@ -414,10 +530,10 @@
 
         } else { //Si no existe manda un mensaje e imprime nuevamente las opciones disponibles.
             displayUserMessage(`Opcion ${opcion}`); // Imprime la seleccion del usuario
-            displayBotMessage(`Selecciona una de las opcones en la lista`); //Mensaje de alerta sobre seleccionar la opcion correcta.
+            displayBotMessage(`Selecciona una de las opciones en la lista`); //Mensaje de alerta sobre seleccionar la opcion correcta.
             clearInput(); // Limpia el input de lo ingreso el usuario.
 
-            displayResponses(arrayQuestion.responses.filter(option => option.question_id === arrayQuestion.question.id));
+            displayResponses(arrayResponses.filter(option => option.questions_id === arrayQuestion.question.id));
         }
 
     });
@@ -430,6 +546,7 @@
 
 
     function displayBotMessage(message) {
+
         const botMessage = document.createElement("div");
         botMessage.className = "bot-message d-flex flex-column align-items-start";
 
@@ -445,7 +562,6 @@
 
         const textNode = document.createElement("span");
         textNode.textContent = message;
-
         messageContainer.appendChild(icon);
         messageContainer.appendChild(textNode);
 
@@ -458,27 +574,38 @@
             // chatContainer.scrollTop = chatContainer.scrollHeight;
             botMessage.scrollIntoView({ behavior: 'smooth' });
         }, 0);
-
-        console.log("scrollHeight:", chatContainer.scrollHeight);
-        console.log("scrollTop:", chatContainer.scrollTop);
     }
 
 
-
-
-
-
     function displayResponses(responses) {
-        let increment = 1;
-        responses.forEach(response => {
-            const optionText = `${increment} - ${response.response_text}`;
-            const botMessage = document.createElement("div");
-            botMessage.textContent = optionText;
-            botMessage.className = "bot-message";
-            chatContainer.appendChild(botMessage);
-            increment++;
 
-        });
+        //console.log('displayResponses => ', arrayResponses.has_next_response);
+
+        if (Array.isArray(responses)) {
+            let increment = 1;
+            responses.forEach(response => {
+                if (response.status === 0) {
+                    // let optionText = '';
+                    if (arrayQuestion) {
+                        const optionText = (isMessageResponse.flag) ? `${response.response_text}` : `${increment} - ${response.response_text}`;
+                        const botMessage = document.createElement("div");
+                        botMessage.textContent = optionText;
+                        botMessage.className = "bot-message";
+                        chatContainer.appendChild(botMessage);
+                        increment++;
+                        setTimeout(() => { botMessage.scrollIntoView({ behavior: 'smooth' }); }, 0);
+                    }
+                }
+                //  else {
+                //     const botMessage = document.createElement("div");
+                //     botMessage.textContent = "No se pudo mostrar una respuesta a tu seleccion";
+                //     botMessage.className = "bot-message";
+                //     chatContainer.appendChild(botMessage);
+                //     setTimeout(() => { botMessage.scrollIntoView({ behavior: 'smooth' }); }, 0);
+
+                // }
+            });
+        }
     }
 
 
@@ -546,6 +673,9 @@
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
+    function isNumber(value) {
+        return Number.isInteger(value);
+    }
 
     //Chequear si existe el index en el arreglo
     function checkIndex(input, array) {

@@ -11,7 +11,7 @@ class AuthController
     {
 
         $data = [
-            'carnet' => '',
+            'carne' => '',
             'password' => '',
             'carnetError' => '',
             'passwordError' => ''
@@ -25,15 +25,17 @@ class AuthController
             }
 
             $data = [
-                'carnet' => trim($_POST['carnet'] ?? ''),
+                'carne' => trim($_POST['carne'] ?? ''),
                 'password' => trim($_POST['password'] ?? ''),
-                'carnetError' => empty($_POST['carnet']) ? 'Ingrese su carnet' : '',
+                'carneError' => empty($_POST['carne']) ? 'Ingrese su carnet' : '',
                 'passwordError' => empty($_POST['password']) ? 'Ingrese su password' : ''
             ];
 
-            if (empty($data['carnetError']) && empty($data['passwordError'])) {
+            if (empty($data['carneError']) && empty($data['passwordError'])) {
                 $userModel = new User();
-                $user = $userModel->login($data['carnet'], $data['password']);
+                $userModel->setCarne($data['carne']);
+                $userModel->setPassword($data['password']);
+                $user = $userModel->login();
 
                 if ($user) {
                     self::userSession($user);
@@ -54,8 +56,8 @@ class AuthController
     {
         session_start();
         $_SESSION['id'] = $user->id;
-        $_SESSION['carnet'] = $user->carnet;
-        $_SESSION['fullname'] = $user->fullname;
+        $_SESSION['carne'] = $user->carne;
+        $_SESSION['fullname'] = $user->name . " " . $user->lastname;
         $_SESSION['email'] = $user->email;
         $_SESSION['login'] = true;
         header('location: /chatbot');

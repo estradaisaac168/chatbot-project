@@ -21,7 +21,8 @@ class ResponseController
 
 
         $responseModel = new Response();
-        $response = $responseModel->getById($id);
+        $responseModel->setId($id);
+        $response = $responseModel->getOne();
 
         if (!$response) {
             echo json_encode([

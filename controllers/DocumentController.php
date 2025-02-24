@@ -27,7 +27,8 @@ class DocumentController
 
 
         $responseModel = new Response();
-        $response = $responseModel->getById($id);
+        $responseModel->setId($id);
+        $response = $responseModel->getOne();
 
         if (!$response) {
             echo json_encode([
@@ -64,7 +65,8 @@ class DocumentController
         }
 
 
-        $filePath = '';
+        $absolutePath = '';
+        $relativePath = 'uploads/documents/';
         $nameFile = '';
         $document = [];
 
@@ -79,30 +81,34 @@ class DocumentController
         switch (intval($_POST['type'])) {
             case 1:
                 $nameFile = 'constancia_laboral_' . rand(10000, 99999);
-                $filePath = $generador->generarConstanciaSalarial($nameFile, $_SESSION['fullname'], 'Call Center - RRHH', 1500.00, 200.00, 100.00);
+                $absolutePath = $generador->generarConstanciaSalarial($nameFile, $_SESSION['fullname'], 'Call Center - RRHH', 1500.00, 200.00, 100.00);
                 break;
 
             case 2:
                 $nameFile = 'boleta_pago_' . rand(10000, 99999);
-                $filePath = $generador->generarBoletaPago($nameFile, $_SESSION['carnet'], $_SESSION['fullname'], 'Call Center - RRHH', 1500.00, 200.00, 100.00);
+                $absolutePath = $generador->generarBoletaPago($nameFile, $_SESSION['carnet'], $_SESSION['fullname'], 'Call Center - RRHH', 1500.00, 200.00, 100.00);
                 break;
 
             default:
                 // $nameFile = 'constancia_laboral_' . rand(10000, 99999);
-                // $filePath = $generador->generarConstanciaLaboral($nameFile, $_SESSION['fullname'], 'Call Center - RRHH', 'Analista', '01/01/2020');
+                // $absolutePath = $generador->generarConstanciaLaboral($nameFile, $_SESSION['fullname'], 'Call Center - RRHH', 'Analista', '01/01/2020');
 
                 break;
         }
 
 
         // Guardar en la base de datos
-        $document['name'] = $nameFile . ".pdf";
-        $document['path'] = $filePath;
-        $document['createdAt'] = date('Y-m-d H:i:s');
-        $document['responseId'] = $responseId;
+        // $document['name'] = $nameFile . ".pdf";
+        // $document['path'] = $filePath;
+        // $document['createdAt'] = date('Y-m-d H:i:s');
+        // $document['responseId'] = $responseId;
 
         $documentModel = new Document();
-        $document = $documentModel->save($document);
+        $documentModel->setName($nameFile . ".pdf");
+        $documentModel->setAbsolutePath($absolutePath);
+        $documentModel->setRelativePath($relativePath);
+        $documentModel->setResponsesId(intval($responseId));
+        $document = $documentModel->save();
 
         if (!$document) {
             echo json_encode([
@@ -135,17 +141,19 @@ class DocumentController
         }
 
         $documentModel = new Document();
-        $document = $documentModel->getById(intval($id));
+        $documentModel->setId(intval($id));
+        $document = $documentModel->getById();
 
         if ($document) {
 
-            $url = SITE_URL . 'uploads/documents/' . $document->document_name;
+            // $url = SITE_URL . 'uploads/documents/' . $document->document_name;
+            $url = SITE_URL . $document->relative_path . $document->name;
             // $url = stripslashes($document->file_path);
 
             echo json_encode([
                 'status' => true,
                 'message' => 'Documento encontrado',
-                "filename" => $document->document_name,
+                "filename" => $document->name,
                 "url" => $url
             ], JSON_UNESCAPED_SLASHES);
 
@@ -177,15 +185,16 @@ class DocumentController
         }
 
         $documentModel = new Document();
-        $document = $documentModel->getById(intval($id));
+        $documentModel->setId(intval($id));
+        $document = $documentModel->getById();
 
         if ($document) {
 
             $recipient = $_SESSION['email'];
-            $subject = $document->document_name;
+            $subject = $document->name;
             $message = "<h1>Hola " . $_SESSION['fullname'] . "</h1><p>Se ha adjuntado tu documento.</p>";
 
-            $result = EmailSender::sendEmail($recipient, $subject, $message, $document->file_path, $document->document_name);
+            $result = EmailSender::sendEmail($recipient, $subject, $message, $document->absolute_path, $document->name);
 
             if ($result) {
 

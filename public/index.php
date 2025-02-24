@@ -1,4 +1,12 @@
 <?php
+
+error_reporting(E_ALL);
+ini_set('ignore_repeated_errors', TRUE);
+ini_set('display_errors', TRUE); //Solo en ambiente de desarrollo. 
+ini_set('log_errors', TRUE);
+ini_set('error_log', '/home/user/chatbot-project/php-error.log');
+// error_log("Testing errors!");
+
 require_once __DIR__ . '/../core/app.php';
 
 use App\Router;
@@ -8,15 +16,6 @@ use Controllers\DocumentController;
 use Controllers\UserController;
 use Controllers\AuthController;
 use Controllers\ChatbotController;
-
-// header("Access-Control-Allow-Origin: https://5502-idx-chatbot-1739282265787.cluster-joak5ukfbnbyqspg4tewa33d24.cloudworkstations.dev/");
-
-// // // Permitir credenciales
-// header("Access-Control-Allow-Credentials: true");
-// header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-// header("Access-Control-Allow-Headers: Content-Type, Authorization");
-
-// header('Content-Type: application/json');
 
 $router = new Router();
 

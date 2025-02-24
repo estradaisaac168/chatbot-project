@@ -20,41 +20,12 @@ class Router
     public function checkRoutes()
     {
 
-
-        // Proteger Rutas...
-        // session_set_cookie_params([
-        //     'lifetime' => 0,
-        //     'secure' => true,      // Solo permitir en HTTPS
-        //     'httponly' => true,    // No accesible por JavaScript
-        //     'samesite' => 'Strict' // Evita CSRF
-        // ]);
-        // session_start();
-
-        // Arreglo de rutas protegidas...
-        // $rutas_protegidas = ['/admin', '/propiedades/crear', '/propiedades/actualizar', '/propiedades/eliminar', '/vendedores/crear', '/vendedores/actualizar', '/vendedores/eliminar'];
-
-        // $auth = $_SESSION['login'] ?? null;
-
-        // $currentUrl = $_SERVER['PATH_INFO'] ?? '/';
-
         // $currentUrl = parse_url($_SERVER['REQUEST_URI']) ?? '/';
         // $currentUrl = $_SERVER['REQUEST_URI'] ?? '/';
 
         $currentUrl = strtok($_SERVER["REQUEST_URI"], "?") ?? '/';
 
         $method = $_SERVER['REQUEST_METHOD'];
-
-        // Manejar solicitudes OPTIONS (Preflight)
-        // if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-        //     http_response_code(200);
-        //     exit();
-        // }
-
-        // if ($method === 'GET') {
-        //     $fn = $this->getRoutes[$currentUrl['path']] ?? null;
-        // } else {
-        //     $fn = $this->postRoutes[$currentUrl['path']] ?? null;
-        // }
 
         if ($method === 'GET') {
             $fn = $this->getRoutes[$currentUrl] ?? null;
